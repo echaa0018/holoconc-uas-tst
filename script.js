@@ -255,7 +255,6 @@ async function fetchConcerts() {
         const res = await fetch(`${API_URL}/concerts`);
         const data = await res.json();
         
-        // Sort alphabetically by name
         data.sort((a, b) => a.name.localeCompare(b.name));
         
         allConcerts = data;
@@ -275,7 +274,7 @@ async function fetchMyTickets() {
         if (data.message && !Array.isArray(data)) {
             myOrders = [];
         } else {
-            // SORTING LOGIC ADDED HERE: Earliest date first
+            // Sort by Date (Earliest First)
             data.sort((a, b) => new Date(a.Concert.date) - new Date(b.Concert.date));
             myOrders = data;
         }
@@ -351,7 +350,7 @@ function renderOrders(orders) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td style="color: #6200ea; font-weight:bold;">${dateString}</td>
+            <td style="color: #ffffff; font-weight:bold;">${dateString}</td>
             <td>${c.name}</td>
             <td style="font-style:italic;">${c.artist}</td>
             <td>${c.venue}</td>
@@ -548,10 +547,8 @@ async function executePurchase() {
 
         if (res.ok) {
             closeConfirmModal();
+            // --- UPDATED: Simplified notification text (no drink list) ---
             let msg = 'Purchase successful! See "My Tickets" for details.';
-            if (selectedDrinks.length > 0) {
-                msg += `\n\nBonus Drinks Added:\n- ${selectedDrinks.join("\n- ")}`;
-            }
             showToast(msg, 'success');
             fetchConcerts(); 
         } else {
