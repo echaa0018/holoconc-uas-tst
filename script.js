@@ -26,7 +26,7 @@ const toast = document.getElementById('toast');
 
 // NEW Elements for Venue Exclusive
 const venueBonusContainer = document.getElementById('venue-bonus-container');
-const bonusDrinkSelect = document.getElementById('bonus-drink-select');
+const bonusSelectionArea = document.getElementById('bonus-selection-area'); // New Container
 const bonusQtyDisplay = document.getElementById('bonus-qty-display');
 
 // Initialize
@@ -130,22 +130,57 @@ async function fetchPartnerDrinks() {
         
         if (json.status === 'success' && Array.isArray(json.data)) {
             partnerDrinksCache = json.data;
-            populateDrinkSelect();
+            // Refill dropdowns if they are currently empty/waiting
+            renderDrinkDropdowns(); 
         }
     } catch (err) {
         console.error("Failed to fetch partner drinks:", err);
-        bonusDrinkSelect.innerHTML = '<option value="">Failed to load drinks</option>';
+        bonusSelectionArea.innerHTML = '<p style="color:red">Failed to load drinks</p>';
     }
 }
 
-function populateDrinkSelect() {
-    bonusDrinkSelect.innerHTML = '<option value="" disabled selected>Select a drink...</option>';
-    partnerDrinksCache.forEach(drink => {
-        const option = document.createElement('option');
-        option.value = drink.id;
-        option.textContent = `${drink.name} (Top Tier)`;
-        bonusDrinkSelect.appendChild(option);
-    });
+function renderDrinkDropdowns() {
+    // Clear existing
+    bonusSelectionArea.innerHTML = '';
+    
+    // Create 'pendingAmount' number of dropdowns
+    for (let i = 1; i <= pendingAmount; i++) {
+        const wrapper = document.createElement('div');
+        
+        const label = document.createElement('label');
+        label.innerText = `Ticket #${i} Drink:`;
+        label.style.fontSize = "0.85rem";
+        label.style.color = "#ccc";
+        
+        const select = document.createElement('select');
+        select.className = 'bonus-drink-select'; // Helper class for gathering values
+        select.style.width = "100%";
+        select.style.padding = "10px";
+        select.style.background = "#333";
+        select.style.color = "white";
+        select.style.border = "1px solid #555";
+        select.style.borderRadius = "5px";
+
+        // Default Option
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = "";
+        defaultOpt.innerText = "Select a drink...";
+        defaultOpt.disabled = true;
+        defaultOpt.selected = true;
+        select.appendChild(defaultOpt);
+
+        // Populate options
+        partnerDrinksCache.forEach(drink => {
+            const option = document.createElement('option');
+            option.value = drink.id;
+            option.textContent = `${drink.name} (Top Tier)`;
+            select.appendChild(option);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(select);
+        bonusSelectionArea.appendChild(wrapper);
+    }
 }
 
 // --- FETCH DATA ---
@@ -301,14 +336,13 @@ function initiateBuy(concertId) {
         if(venueBonusContainer) venueBonusContainer.style.display = 'block';
         if(bonusQtyDisplay) bonusQtyDisplay.innerText = amount;
         
-        // Fetch drinks
+        // Populate Inputs
         if (partnerDrinksCache.length === 0) {
-            fetchPartnerDrinks();
+            fetchPartnerDrinks(); // This will call renderDrinkDropdowns on success
         } else {
-            populateDrinkSelect();
+            renderDrinkDropdowns(); // Use cached data
         }
     } else {
-        // No Addons for other arenas (removed standardAddonContainer)
         if(venueBonusContainer) venueBonusContainer.style.display = 'none';
     }
 
@@ -331,20 +365,27 @@ function closeConfirmModal() {
     pendingAmount = 0;
 }
 
-// --- UPDATED EXECUTE PURCHASE WITH SPINNER ---
+// --- UPDATED EXECUTE PURCHASE ---
 async function executePurchase() {
     if (!pendingConcert) return;
 
-    let selectedDrink = null;
-    // If Pia Arena MM, check if drink is selected
+    let selectedDrinks = [];
+    
+    // If Pia Arena MM, gather all selected drinks
     if (pendingConcert.venue === "Pia Arena MM") {
-        const drinkId = bonusDrinkSelect.value;
-        if (!drinkId) {
-            alert("Please select your complimentary drink!");
-            return;
+        const dropdowns = document.querySelectorAll('.bonus-drink-select');
+        
+        // Validate all are selected
+        for (let i = 0; i < dropdowns.length; i++) {
+            if (!dropdowns[i].value) {
+                alert(`Please select a drink for Ticket #${i+1}!`);
+                return;
+            }
+            // Find name from cache
+            const drinkId = dropdowns[i].value;
+            const drinkObj = partnerDrinksCache.find(d => d.id == drinkId);
+            selectedDrinks.push(drinkObj ? drinkObj.name : "Unknown");
         }
-        const drinkObj = partnerDrinksCache.find(d => d.id == drinkId);
-        selectedDrink = drinkObj ? drinkObj.name : "Unknown Drink";
     }
 
     // SPINNER LOGIC
@@ -359,8 +400,9 @@ async function executePurchase() {
             amount: pendingAmount
         };
 
-        if (selectedDrink) {
-            payload.bonusDrink = selectedDrink;
+        if (selectedDrinks.length > 0) {
+            // Send as comma-separated string to backend
+            payload.bonusDrink = selectedDrinks.join(", ");
         }
 
         const res = await fetch(`${API_URL}/buy`, {
@@ -377,14 +419,14 @@ async function executePurchase() {
         if (res.ok) {
             closeConfirmModal();
             let msg = 'Purchase successful! See "My Tickets" for details.';
-            if (selectedDrink) {
-                msg += `\n\nBonus: ${pendingAmount}x ${selectedDrink} added!`;
+            if (selectedDrinks.length > 0) {
+                msg += `\n\nBonus Drinks Added:\n- ${selectedDrinks.join("\n- ")}`;
             }
             alert(msg);
             fetchConcerts(); 
         } else {
             alert('Failed: ' + data.message);
-            closeConfirmModal(); // Close modal even if failed so they can try again or check details
+            closeConfirmModal(); 
         }
     } catch (err) {
         alert('Error processing request');
