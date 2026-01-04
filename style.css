@@ -27,7 +27,7 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px; /* Adjusted spacing */
 }
 
 .company-logo {
@@ -36,25 +36,33 @@ body {
     object-fit: cover;
     object-position: center;
     border-radius: 50%;
-    border: 2px solid #00d4ff;
+    border: 2px solid #6200ea; /* Updated to Purple */
 }
 
 .logo-text {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #00d4ff;
+    color: #6200ea; /* Updated to Purple */
+}
+
+/* Updated Nav Links Layout */
+.nav-links {
+    display: flex;        /* Align items in a row */
+    align-items: center;  /* Center vertically */
+    gap: 25px;            /* Even spacing */
 }
 
 .nav-links a {
-    margin-left: 20px;
+    margin-left: 0;       /* Reset margin since we use gap now */
     text-decoration: none;
     color: #e0e0e0;
     font-weight: 500;
     transition: color 0.3s;
+    font-size: 1rem;
 }
 
 .nav-links a:hover, .nav-links a.active {
-    color: #00d4ff;
+    color: #6200ea; /* Updated to Purple */
 }
 
 /* Container */
@@ -89,7 +97,7 @@ h2 {
 
 #search-input:focus {
     outline: none;
-    border-color: #00d4ff;
+    border-color: #6200ea; /* Updated focus color */
 }
 
 /* Grid List */
@@ -117,7 +125,7 @@ h2 {
 
 .card:hover {
     transform: translateY(-3px);
-    border-color: #00d4ff;
+    border-color: #6200ea; /* Updated hover border */
 }
 
 /* Overlay Text Styles */
@@ -128,7 +136,7 @@ h2 {
 }
 
 .card h3 {
-    color: #00d4ff;
+    color: #6200ea; /* Updated card title color */
     margin-bottom: 0.5rem;
     font-size: 1.6rem;
 }
@@ -213,15 +221,20 @@ input[type=number] { -moz-appearance: textfield; }
 .btn-primary {
     flex: 1;
     padding: 12px;
-    background-color: #00d4ff;
+    background-color: #6200ea; /* Purple */
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s;
+    /* Flex alignment for spinner */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
-.btn-primary:hover { background-color: #4d50ff; }
+.btn-primary:hover { background-color: #7c4dff; } /* Lighter Purple */
 
 .btn-secondary {
     flex: 1;
@@ -234,6 +247,15 @@ input[type=number] { -moz-appearance: textfield; }
     font-weight: bold;
 }
 .btn-secondary:hover { background-color: #555; }
+
+/* Disabled State for Buttons (Loading) */
+button:disabled, .btn-primary:disabled {
+    background-color: #555 !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
 
 /* Table Styles */
 .table-container { overflow-x: auto; }
@@ -255,7 +277,7 @@ input[type=number] { -moz-appearance: textfield; }
 
 .ticket-table th {
     background-color: #2c2c2c;
-    color: #00d4ff;
+    color: #6200ea; /* Purple Headers */
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.9rem;
@@ -301,7 +323,7 @@ input[type=number] { -moz-appearance: textfield; }
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .error-msg { color: #ff5252; margin-top: 10px; }
 
-/* --- ADDON CHECKBOX SECTION (BARU) --- */
+/* Addon Section */
 .addon-container {
     background-color: #2a2a2a;
     padding: 15px;
@@ -324,58 +346,13 @@ input[type=number] { -moz-appearance: textfield; }
 .checkbox-label input[type="checkbox"] {
     transform: scale(1.2);
     cursor: pointer;
-    accent-color: #4d50ff; /* Warna Centang Ungu */
+    accent-color: #6200ea; /* Purple Checkbox */
 }
-
-.api-status {
-    margin-top: 8px;
-    font-size: 0.9rem;
-    color: #ffeb3b; /* Kuning Peringatan */
-    font-weight: bold;
-    font-style: italic;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 
 /* Toast Notification */
 .toast {
     visibility: hidden;
     min-width: 300px;
-    background-color: #d32f2f;
-    color: #fff;
-    text-align: center;
-    border-radius: 8px;
-    padding: 16px;
-    position: fixed;
-    z-index: 2000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 1rem;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: opacity 0.3s, bottom 0.3s;
-}
-
-.toast.show {
-    visibility: visible;
-    opacity: 1;
-    bottom: 50px; 
-}
-
-/* ... [Previous CSS Content remains the same] ... */
-
-/* Toast Notification */
-.toast {
-    visibility: hidden;
-    min-width: 300px;
-    /* Removed default background-color here to let classes handle it, or set default */
     background-color: #333; 
     color: #fff;
     text-align: center;
@@ -391,16 +368,14 @@ input[type=number] { -moz-appearance: textfield; }
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     opacity: 0;
     transition: opacity 0.3s, bottom 0.3s;
-    white-space: pre-line; /* Allows new lines in messages */
+    white-space: pre-line;
 }
 
-/* SUCCESS: Bright Green Background, Dark Text */
 .toast.success {
     background-color: #00e676;
     color: #000;
 }
 
-/* ERROR: Red Background, White Text */
 .toast.error {
     background-color: #d32f2f;
     color: #fff;

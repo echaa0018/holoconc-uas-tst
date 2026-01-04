@@ -1,7 +1,4 @@
 const API_URL = 'http://localhost:3000';
-// https://marine.theokaitou.my.id
-// http://localhost:3000
-// http://localhost:3082
 // Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
@@ -21,7 +18,7 @@ const orderTableBody = document.getElementById('order-table-body');
 const noOrdersMsg = document.getElementById('no-orders-msg');
 const searchInput = document.getElementById('search-input');
 const loginModal = document.getElementById('login-modal');
-const registerModal = document.getElementById('register-modal'); // New
+const registerModal = document.getElementById('register-modal');
 const confirmModal = document.getElementById('confirm-modal');
 const pageTitle = document.getElementById('page-title');
 const toast = document.getElementById('toast');
@@ -29,8 +26,8 @@ const toast = document.getElementById('toast');
 // Nav Elements
 const navHome = document.getElementById('nav-home');
 const navOrders = document.getElementById('nav-orders');
-const navLogin = document.getElementById('nav-login'); // New
-const navRegister = document.getElementById('nav-register'); // New
+const navLogin = document.getElementById('nav-login');
+const navRegister = document.getElementById('nav-register');
 const navLogout = document.getElementById('nav-logout');
 
 // Addon Elements
@@ -100,6 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// --- HELPER FUNCTION FOR SPINNERS ---
+function toggleButtonLoading(btnId, isLoading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+
+    if (isLoading) {
+        btn.dataset.originalText = btn.innerHTML;
+        btn.disabled = true; 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalText || 'Submit';
+    }
+}
 
 function updateNavState() {
     if (token) {
@@ -319,7 +331,7 @@ function renderOrders(orders) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td style="color: #00d4ff; font-weight:bold;">${dateString}</td>
+            <td style="color: #6200ea; font-weight:bold;">${dateString}</td>
             <td>${c.name}</td>
             <td style="font-style:italic;">${c.artist}</td>
             <td>${c.venue}</td>
@@ -337,6 +349,15 @@ function renderOrders(orders) {
 async function handleLogin() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('login-error');
+
+    if (!username || !password) {
+        errorMsg.innerText = "Please fill in all fields.";
+        return;
+    }
+
+    toggleButtonLoading('btn-login', true);
+    errorMsg.innerText = ''; 
 
     try {
         const res = await fetch(`${API_URL}/auth/login`, {
@@ -354,21 +375,28 @@ async function handleLogin() {
             updateNavState();
             fetchConcerts();
         } else {
-            document.getElementById('login-error').innerText = data.message || 'Login failed';
+            errorMsg.innerText = data.message || 'Login failed';
         }
     } catch (err) {
         console.error(err);
+        errorMsg.innerText = "Connection error.";
+    } finally {
+        toggleButtonLoading('btn-login', false);
     }
 }
 
 async function handleRegister() {
     const username = document.getElementById('reg-username').value;
     const password = document.getElementById('reg-password').value;
+    const errorMsg = document.getElementById('register-error');
 
     if (!username || !password) {
-        document.getElementById('register-error').innerText = "Please fill in all fields.";
+        errorMsg.innerText = "Please fill in all fields.";
         return;
     }
+
+    toggleButtonLoading('btn-register', true);
+    errorMsg.innerText = '';
 
     try {
         const res = await fetch(`${API_URL}/auth/register`, {
@@ -383,11 +411,13 @@ async function handleRegister() {
             registerModal.style.display = 'none';
             loginModal.style.display = 'flex';
         } else {
-            document.getElementById('register-error').innerText = data.message || 'Registration failed';
+            errorMsg.innerText = data.message || 'Registration failed';
         }
     } catch (err) {
         console.error(err);
         showToast("Error connecting to server", "error");
+    } finally {
+        toggleButtonLoading('btn-register', false);
     }
 }
 
@@ -397,7 +427,6 @@ function handleLogout() {
     updateNavState();
     setActiveNav('home');
     showToast("Logged out successfully", "success");
-    // Don't reload, just update state
     fetchConcerts();
 }
 
@@ -410,7 +439,6 @@ function showRegisterModal() {
 }
 
 function initiateBuy(concertId) {
-    // RESTRICTION CHECK
     if (!token) {
         showToast("You need to log in to buy tickets", "error");
         return;
@@ -475,10 +503,7 @@ async function executePurchase() {
         }
     }
 
-    const btnConfirm = document.getElementById('btn-confirm-buy');
-    const originalText = btnConfirm.innerHTML;
-    btnConfirm.disabled = true;
-    btnConfirm.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    toggleButtonLoading('btn-confirm-buy', true);
 
     try {
         const payload = { 
@@ -511,14 +536,11 @@ async function executePurchase() {
             fetchConcerts(); 
         } else {
             showToast('Failed: ' + data.message, 'error');
-            closeConfirmModal(); 
         }
     } catch (err) {
         showToast('Error processing request', 'error');
         console.error(err);
-        closeConfirmModal();
     } finally {
-        btnConfirm.disabled = false;
-        btnConfirm.innerHTML = originalText;
+        toggleButtonLoading('btn-confirm-buy', false);
     }
 }
