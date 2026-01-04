@@ -1,4 +1,5 @@
 const API_URL = 'http://localhost:3000';
+// Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
 let allConcerts = [];
@@ -254,7 +255,7 @@ async function fetchConcerts() {
         const res = await fetch(`${API_URL}/concerts`);
         const data = await res.json();
         
-        // SORT ALPHABETICALLY BY NAME to prevent reordering on updates
+        // Sort alphabetically by name
         data.sort((a, b) => a.name.localeCompare(b.name));
         
         allConcerts = data;
@@ -274,6 +275,8 @@ async function fetchMyTickets() {
         if (data.message && !Array.isArray(data)) {
             myOrders = [];
         } else {
+            // SORTING LOGIC ADDED HERE: Earliest date first
+            data.sort((a, b) => new Date(a.Concert.date) - new Date(b.Concert.date));
             myOrders = data;
         }
         renderOrders(myOrders);
