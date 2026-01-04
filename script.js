@@ -26,7 +26,7 @@ const toast = document.getElementById('toast');
 
 // NEW Elements for Venue Exclusive
 const venueBonusContainer = document.getElementById('venue-bonus-container');
-const bonusSelectionArea = document.getElementById('bonus-selection-area'); // New Container
+const bonusSelectionArea = document.getElementById('bonus-selection-area');
 const bonusQtyDisplay = document.getElementById('bonus-qty-display');
 
 // Initialize
@@ -130,7 +130,6 @@ async function fetchPartnerDrinks() {
         
         if (json.status === 'success' && Array.isArray(json.data)) {
             partnerDrinksCache = json.data;
-            // Refill dropdowns if they are currently empty/waiting
             renderDrinkDropdowns(); 
         }
     } catch (err) {
@@ -140,20 +139,22 @@ async function fetchPartnerDrinks() {
 }
 
 function renderDrinkDropdowns() {
-    // Clear existing
     bonusSelectionArea.innerHTML = '';
     
-    // Create 'pendingAmount' number of dropdowns
     for (let i = 1; i <= pendingAmount; i++) {
         const wrapper = document.createElement('div');
         
         const label = document.createElement('label');
         label.innerText = `Ticket #${i} Drink:`;
-        label.style.fontSize = "0.85rem";
+        // UPDATED STYLES TO MATCH MODAL
+        label.style.fontSize = "1rem"; 
         label.style.color = "#ccc";
+        label.style.fontWeight = "bold"; 
+        label.style.display = "block";
+        label.style.marginBottom = "5px";
         
         const select = document.createElement('select');
-        select.className = 'bonus-drink-select'; // Helper class for gathering values
+        select.className = 'bonus-drink-select'; 
         select.style.width = "100%";
         select.style.padding = "10px";
         select.style.background = "#333";
@@ -161,7 +162,6 @@ function renderDrinkDropdowns() {
         select.style.border = "1px solid #555";
         select.style.borderRadius = "5px";
 
-        // Default Option
         const defaultOpt = document.createElement('option');
         defaultOpt.value = "";
         defaultOpt.innerText = "Select a drink...";
@@ -169,7 +169,6 @@ function renderDrinkDropdowns() {
         defaultOpt.selected = true;
         select.appendChild(defaultOpt);
 
-        // Populate options
         partnerDrinksCache.forEach(drink => {
             const option = document.createElement('option');
             option.value = drink.id;
@@ -336,11 +335,10 @@ function initiateBuy(concertId) {
         if(venueBonusContainer) venueBonusContainer.style.display = 'block';
         if(bonusQtyDisplay) bonusQtyDisplay.innerText = amount;
         
-        // Populate Inputs
         if (partnerDrinksCache.length === 0) {
-            fetchPartnerDrinks(); // This will call renderDrinkDropdowns on success
+            fetchPartnerDrinks(); 
         } else {
-            renderDrinkDropdowns(); // Use cached data
+            renderDrinkDropdowns(); 
         }
     } else {
         if(venueBonusContainer) venueBonusContainer.style.display = 'none';
@@ -375,13 +373,11 @@ async function executePurchase() {
     if (pendingConcert.venue === "Pia Arena MM") {
         const dropdowns = document.querySelectorAll('.bonus-drink-select');
         
-        // Validate all are selected
         for (let i = 0; i < dropdowns.length; i++) {
             if (!dropdowns[i].value) {
                 alert(`Please select a drink for Ticket #${i+1}!`);
                 return;
             }
-            // Find name from cache
             const drinkId = dropdowns[i].value;
             const drinkObj = partnerDrinksCache.find(d => d.id == drinkId);
             selectedDrinks.push(drinkObj ? drinkObj.name : "Unknown");
@@ -401,7 +397,6 @@ async function executePurchase() {
         };
 
         if (selectedDrinks.length > 0) {
-            // Send as comma-separated string to backend
             payload.bonusDrink = selectedDrinks.join(", ");
         }
 
@@ -433,7 +428,6 @@ async function executePurchase() {
         console.error(err);
         closeConfirmModal();
     } finally {
-        // Restore button state
         btnConfirm.disabled = false;
         btnConfirm.innerHTML = originalText;
     }
