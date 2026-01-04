@@ -21,25 +21,29 @@ const orderTableBody = document.getElementById('order-table-body');
 const noOrdersMsg = document.getElementById('no-orders-msg');
 const searchInput = document.getElementById('search-input');
 const loginModal = document.getElementById('login-modal');
+const registerModal = document.getElementById('register-modal'); // New
 const confirmModal = document.getElementById('confirm-modal');
 const pageTitle = document.getElementById('page-title');
-const navHome = document.getElementById('nav-home');
-const navOrders = document.getElementById('nav-orders');
 const toast = document.getElementById('toast');
 
-// NEW Elements for Venue Exclusive
+// Nav Elements
+const navHome = document.getElementById('nav-home');
+const navOrders = document.getElementById('nav-orders');
+const navLogin = document.getElementById('nav-login'); // New
+const navRegister = document.getElementById('nav-register'); // New
+const navLogout = document.getElementById('nav-logout');
+
+// Addon Elements
 const venueBonusContainer = document.getElementById('venue-bonus-container');
 const bonusSelectionArea = document.getElementById('bonus-selection-area');
 const bonusQtyDisplay = document.getElementById('bonus-qty-display');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    if (!token) {
-        showLoginModal();
-    } else {
-        fetchConcerts();
-    }
+    updateNavState(); // Update navbar based on login state
+    fetchConcerts(); // Always fetch concerts (Browsing allowed)
 
+    // Navigation Events
     navHome.addEventListener('click', (e) => {
         e.preventDefault();
         setActiveNav('home');
@@ -48,14 +52,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navOrders.addEventListener('click', (e) => {
         e.preventDefault();
+        // RESTRICTION CHECK
+        if (!token) {
+            showToast("You need to log in to view your tickets", "error");
+            return;
+        }
         setActiveNav('orders');
         fetchMyTickets();
     });
 
-    document.getElementById('nav-logout').addEventListener('click', handleLogout);
+    // Auth Button Events
+    navLogin.addEventListener('click', showLoginModal);
+    navRegister.addEventListener('click', showRegisterModal);
+    navLogout.addEventListener('click', handleLogout);
+
+    // Modal Events
     document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('btn-register').addEventListener('click', handleRegister);
     document.getElementById('btn-cancel-buy').addEventListener('click', closeConfirmModal);
     document.getElementById('btn-confirm-buy').addEventListener('click', executePurchase);
+
+    // Switch between Modals
+    document.getElementById('link-to-register').addEventListener('click', () => {
+        loginModal.style.display = 'none';
+        registerModal.style.display = 'flex';
+    });
+    document.getElementById('link-to-login').addEventListener('click', () => {
+        registerModal.style.display = 'none';
+        loginModal.style.display = 'flex';
+    });
 
     searchInput.addEventListener('input', (e) => {
         const keyword = e.target.value.toLowerCase();
@@ -76,6 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function updateNavState() {
+    if (token) {
+        navLogin.style.display = 'none';
+        navRegister.style.display = 'none';
+        navLogout.style.display = 'block';
+    } else {
+        navLogin.style.display = 'block';
+        navRegister.style.display = 'block';
+        navLogout.style.display = 'none';
+    }
+}
+
 function setActiveNav(view) {
     if (view === 'home') {
         navHome.classList.add('active');
@@ -95,19 +132,14 @@ function setActiveNav(view) {
     }
 }
 
-// --- UPDATED SHOW TOAST ---
 function showToast(message, type = 'error') {
     toast.innerText = message;
-    
-    // Add specific class based on type
     if (type === 'success') {
         toast.className = "toast show success";
     } else {
         toast.className = "toast show error";
     }
-
     setTimeout(() => {
-        // Reset classes to hide it
         toast.className = "toast";
     }, 3000);
 }
@@ -118,7 +150,6 @@ function adjustQty(id, change) {
     let newValue = currentValue + change;
 
     if (newValue > 2) {
-        // Updated to use 'error' type (Red)
         showToast("Maximum purchase is 2 tickets per account for this concert!", "error");
         return;
     }
@@ -153,10 +184,8 @@ async function fetchPartnerDrinks() {
 
 function renderDrinkDropdowns() {
     bonusSelectionArea.innerHTML = '';
-    
     for (let i = 1; i <= pendingAmount; i++) {
         const wrapper = document.createElement('div');
-        
         const label = document.createElement('label');
         label.innerText = `Ticket #${i} Drink:`;
         label.style.fontSize = "1rem"; 
@@ -321,6 +350,8 @@ async function handleLogin() {
             token = data.token;
             localStorage.setItem('token', token);
             loginModal.style.display = 'none';
+            showToast("Login Successful", "success");
+            updateNavState();
             fetchConcerts();
         } else {
             document.getElementById('login-error').innerText = data.message || 'Login failed';
@@ -330,16 +361,61 @@ async function handleLogin() {
     }
 }
 
+async function handleRegister() {
+    const username = document.getElementById('reg-username').value;
+    const password = document.getElementById('reg-password').value;
+
+    if (!username || !password) {
+        document.getElementById('register-error').innerText = "Please fill in all fields.";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast("Registration Successful! Please Login.", "success");
+            registerModal.style.display = 'none';
+            loginModal.style.display = 'flex';
+        } else {
+            document.getElementById('register-error').innerText = data.message || 'Registration failed';
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("Error connecting to server", "error");
+    }
+}
+
 function handleLogout() {
     localStorage.removeItem('token');
-    location.reload();
+    token = null;
+    updateNavState();
+    setActiveNav('home');
+    showToast("Logged out successfully", "success");
+    // Don't reload, just update state
+    fetchConcerts();
 }
 
 function showLoginModal() {
     loginModal.style.display = 'flex';
 }
 
+function showRegisterModal() {
+    registerModal.style.display = 'flex';
+}
+
 function initiateBuy(concertId) {
+    // RESTRICTION CHECK
+    if (!token) {
+        showToast("You need to log in to buy tickets", "error");
+        return;
+    }
+
     const qtyInput = document.getElementById(`qty-${concertId}`);
     const amount = parseInt(qtyInput.value);
     
@@ -382,18 +458,14 @@ function closeConfirmModal() {
     pendingAmount = 0;
 }
 
-// --- UPDATED EXECUTE PURCHASE ---
 async function executePurchase() {
     if (!pendingConcert) return;
 
     let selectedDrinks = [];
-    
     if (pendingConcert.venue === "Pia Arena MM") {
         const dropdowns = document.querySelectorAll('.bonus-drink-select');
-        
         for (let i = 0; i < dropdowns.length; i++) {
             if (!dropdowns[i].value) {
-                // Replaced Alert with Toast
                 showToast(`Please select a drink for Ticket #${i+1}!`, 'error');
                 return;
             }
@@ -435,16 +507,13 @@ async function executePurchase() {
             if (selectedDrinks.length > 0) {
                 msg += `\n\nBonus Drinks Added:\n- ${selectedDrinks.join("\n- ")}`;
             }
-            // Replaced Alert with Success Toast (Green)
             showToast(msg, 'success');
             fetchConcerts(); 
         } else {
-            // Replaced Alert with Error Toast (Red)
             showToast('Failed: ' + data.message, 'error');
             closeConfirmModal(); 
         }
     } catch (err) {
-        // Replaced Alert with Error Toast (Red)
         showToast('Error processing request', 'error');
         console.error(err);
         closeConfirmModal();
