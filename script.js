@@ -1,5 +1,4 @@
 const API_URL = 'http://localhost:3000';
-// Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
 let allConcerts = [];
@@ -37,8 +36,8 @@ const bonusQtyDisplay = document.getElementById('bonus-qty-display');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    updateNavState(); // Update navbar based on login state
-    fetchConcerts(); // Always fetch concerts (Browsing allowed)
+    updateNavState(); 
+    fetchConcerts(); 
 
     // Navigation Events
     navHome.addEventListener('click', (e) => {
@@ -49,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navOrders.addEventListener('click', (e) => {
         e.preventDefault();
-        // RESTRICTION CHECK
         if (!token) {
             showToast("You need to log in to view your tickets", "error");
             return;
@@ -63,11 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
     navRegister.addEventListener('click', showRegisterModal);
     navLogout.addEventListener('click', handleLogout);
 
-    // Modal Events
+    // Modal Action Events
     document.getElementById('btn-login').addEventListener('click', handleLogin);
     document.getElementById('btn-register').addEventListener('click', handleRegister);
     document.getElementById('btn-cancel-buy').addEventListener('click', closeConfirmModal);
     document.getElementById('btn-confirm-buy').addEventListener('click', executePurchase);
+
+    // Close Icon Logic
+    const closeIcons = document.querySelectorAll('.close-icon');
+    closeIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const modal = icon.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                if (modal.id === 'confirm-modal') {
+                    pendingConcert = null;
+                    pendingAmount = 0;
+                }
+            }
+        });
+    });
 
     // Switch between Modals
     document.getElementById('link-to-register').addEventListener('click', () => {
@@ -240,6 +253,10 @@ async function fetchConcerts() {
     try {
         const res = await fetch(`${API_URL}/concerts`);
         const data = await res.json();
+        
+        // SORT ALPHABETICALLY BY NAME to prevent reordering on updates
+        data.sort((a, b) => a.name.localeCompare(b.name));
+        
         allConcerts = data;
         renderConcerts(allConcerts);
     } catch (err) {

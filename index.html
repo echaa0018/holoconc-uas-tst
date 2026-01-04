@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoloConc</title>
-    <link rel="icon" href="images/logo1.jpg" type="image/png">
+    <link rel="icon" href="images/logo.jpg" type="image/png">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="logo-container">
-            <img src="images/logo1.jpg" alt="Logo" class="company-logo">
+            <img src="images/logo.jpg" alt="Logo" class="company-logo">
             <span class="logo-text">HoloConc</span>
         </div>
         <div class="nav-links">
@@ -56,34 +56,39 @@
 
     <div id="login-modal" class="modal">
         <div class="modal-content">
+            <span class="close-icon">&times;</span>
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
-            <button id="btn-login" class="btn-primary">Login</button>
+            
+            <button id="btn-login" class="btn-primary full-width">Login</button>
+            
             <p style="margin-top: 15px; font-size: 0.9rem; color: #ccc;">
-                Don't have an account? <a href="#" id="link-to-register" style="color: #00d4ff;">Register here</a>
+                Don't have an account? <a href="#" id="link-to-register" style="color: #6200ea;">Register here</a>
             </p>
             <p id="login-error" class="error-msg"></p>
-            <button class="btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('login-modal').style.display='none'">Close</button>
         </div>
     </div>
 
     <div id="register-modal" class="modal">
         <div class="modal-content">
+            <span class="close-icon">&times;</span>
             <h2>Register</h2>
             <input type="text" id="reg-username" placeholder="Username">
             <input type="password" id="reg-password" placeholder="Password">
-            <button id="btn-register" class="btn-primary">Create Account</button>
+            
+            <button id="btn-register" class="btn-primary full-width">Create Account</button>
+            
             <p style="margin-top: 15px; font-size: 0.9rem; color: #ccc;">
-                Already have an account? <a href="#" id="link-to-login" style="color: #00d4ff;">Login here</a>
+                Already have an account? <a href="#" id="link-to-login" style="color: #6200ea;">Login here</a>
             </p>
             <p id="register-error" class="error-msg"></p>
-            <button class="btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('register-modal').style.display='none'">Close</button>
         </div>
     </div>
 
     <div id="confirm-modal" class="modal">
         <div class="modal-content">
+            <span class="close-icon">&times;</span>
             <h2>Confirm Purchase</h2>
             
             <div id="confirm-details" style="text-align: left; margin: 15px 0; color: #ccc;"></div>
