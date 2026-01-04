@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:3000';
+// https://marine.theokaitou.my.id
 // http://localhost:3000
 // http://localhost:3082
-// https://marine.theokaitou.my.id
 // Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
@@ -95,11 +95,20 @@ function setActiveNav(view) {
     }
 }
 
-function showToast(message) {
+// --- UPDATED SHOW TOAST ---
+function showToast(message, type = 'error') {
     toast.innerText = message;
-    toast.className = "toast show";
+    
+    // Add specific class based on type
+    if (type === 'success') {
+        toast.className = "toast show success";
+    } else {
+        toast.className = "toast show error";
+    }
+
     setTimeout(() => {
-        toast.className = toast.className.replace("show", "");
+        // Reset classes to hide it
+        toast.className = "toast";
     }, 3000);
 }
 
@@ -109,7 +118,8 @@ function adjustQty(id, change) {
     let newValue = currentValue + change;
 
     if (newValue > 2) {
-        showToast("Maximum purchase is 2 tickets per account for this concert!");
+        // Updated to use 'error' type (Red)
+        showToast("Maximum purchase is 2 tickets per account for this concert!", "error");
         return;
     }
     
@@ -256,7 +266,6 @@ function renderConcerts(concerts) {
     });
 }
 
-// --- UPDATED RENDER ORDERS ---
 function renderOrders(orders) {
     orderTableBody.innerHTML = '';
 
@@ -274,10 +283,8 @@ function renderOrders(orders) {
         const dateObj = new Date(c.date);
         const dateString = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
         
-        // PARSE ADDONS (DRINKS)
         let drinkText = '-';
         if (order.TransactionAddons && order.TransactionAddons.length > 0) {
-            // Join array with comma and break lines if needed (or simple comma space)
             drinkText = order.TransactionAddons.map(a => a.item_name).join(', ');
         }
 
@@ -288,11 +295,9 @@ function renderOrders(orders) {
             <td style="font-style:italic;">${c.artist}</td>
             <td>${c.venue}</td>
             <td style="text-align:center;">${order.amount}</td>
-            
             <td style="font-size: 0.85rem; color: #aaa; font-style: italic;">
                 ${drinkText}
             </td>
-
             <td style="color: #00e676; font-weight:bold;">$${order.totalPrice}</td>
         `;
         orderTableBody.appendChild(row);
@@ -345,7 +350,6 @@ function initiateBuy(concertId) {
     pendingAmount = amount;
     const totalPrice = concert.price * amount;
 
-    // CHECK FOR PIA ARENA MM
     if (concert.venue === "Pia Arena MM") {
         if(venueBonusContainer) venueBonusContainer.style.display = 'block';
         if(bonusQtyDisplay) bonusQtyDisplay.innerText = amount;
@@ -384,13 +388,13 @@ async function executePurchase() {
 
     let selectedDrinks = [];
     
-    // If Pia Arena MM, gather all selected drinks
     if (pendingConcert.venue === "Pia Arena MM") {
         const dropdowns = document.querySelectorAll('.bonus-drink-select');
         
         for (let i = 0; i < dropdowns.length; i++) {
             if (!dropdowns[i].value) {
-                alert(`Please select a drink for Ticket #${i+1}!`);
+                // Replaced Alert with Toast
+                showToast(`Please select a drink for Ticket #${i+1}!`, 'error');
                 return;
             }
             const drinkId = dropdowns[i].value;
@@ -399,7 +403,6 @@ async function executePurchase() {
         }
     }
 
-    // SPINNER LOGIC
     const btnConfirm = document.getElementById('btn-confirm-buy');
     const originalText = btnConfirm.innerHTML;
     btnConfirm.disabled = true;
@@ -432,14 +435,17 @@ async function executePurchase() {
             if (selectedDrinks.length > 0) {
                 msg += `\n\nBonus Drinks Added:\n- ${selectedDrinks.join("\n- ")}`;
             }
-            alert(msg);
+            // Replaced Alert with Success Toast (Green)
+            showToast(msg, 'success');
             fetchConcerts(); 
         } else {
-            alert('Failed: ' + data.message);
+            // Replaced Alert with Error Toast (Red)
+            showToast('Failed: ' + data.message, 'error');
             closeConfirmModal(); 
         }
     } catch (err) {
-        alert('Error processing request');
+        // Replaced Alert with Error Toast (Red)
+        showToast('Error processing request', 'error');
         console.error(err);
         closeConfirmModal();
     } finally {
