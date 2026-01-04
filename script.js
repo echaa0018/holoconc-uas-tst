@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://marine.theokaitou.my.id';
 // Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
