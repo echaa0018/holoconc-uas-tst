@@ -1,4 +1,7 @@
-const API_URL = 'https://marine.theokaitou.my.id';
+const API_URL = 'http://localhost:3000';
+// http://localhost:3000
+// http://localhost:3082
+// https://marine.theokaitou.my.id
 // Partner API for Pia Arena MM Exclusive
 const PARTNER_API_URL = 'https://ngofee.theokaitou.my.id/api/drinks/top/expensive';
 
@@ -146,7 +149,6 @@ function renderDrinkDropdowns() {
         
         const label = document.createElement('label');
         label.innerText = `Ticket #${i} Drink:`;
-        // UPDATED STYLES TO MATCH MODAL
         label.style.fontSize = "1rem"; 
         label.style.color = "#ccc";
         label.style.fontWeight = "bold"; 
@@ -254,6 +256,7 @@ function renderConcerts(concerts) {
     });
 }
 
+// --- UPDATED RENDER ORDERS ---
 function renderOrders(orders) {
     orderTableBody.innerHTML = '';
 
@@ -271,6 +274,13 @@ function renderOrders(orders) {
         const dateObj = new Date(c.date);
         const dateString = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
         
+        // PARSE ADDONS (DRINKS)
+        let drinkText = '-';
+        if (order.TransactionAddons && order.TransactionAddons.length > 0) {
+            // Join array with comma and break lines if needed (or simple comma space)
+            drinkText = order.TransactionAddons.map(a => a.item_name).join(', ');
+        }
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td style="color: #00d4ff; font-weight:bold;">${dateString}</td>
@@ -278,6 +288,11 @@ function renderOrders(orders) {
             <td style="font-style:italic;">${c.artist}</td>
             <td>${c.venue}</td>
             <td style="text-align:center;">${order.amount}</td>
+            
+            <td style="font-size: 0.85rem; color: #aaa; font-style: italic;">
+                ${drinkText}
+            </td>
+
             <td style="color: #00e676; font-weight:bold;">$${order.totalPrice}</td>
         `;
         orderTableBody.appendChild(row);
